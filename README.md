@@ -12,7 +12,7 @@ In addition to the implementation, this repository includes:
 
 ## 📦 Installation and Setup
 
-The code was tested using **Python 3.14.1**.
+The code was tested using **Python 3.13.10**.
 
 To install the required dependencies, navigate to the project directory and choose one of the following options:
 
