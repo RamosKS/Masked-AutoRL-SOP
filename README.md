@@ -86,19 +86,25 @@ y
 ### Stop all containers
 
 ```bash
-docker stop $(docker ps -aq)
+docker stop $(docker ps -aq) # For Linux, macOS and Windowns(PowerShell)
+or
+for /f %i in ('docker ps -aq') do docker stop %i # For Windows (CMD)
 ```
 
 ### Remove containers
 
 ```bash
-docker rm $(docker ps -aq)
+docker rm $(docker ps -aq) # For Linux, macOS and Windowns(PowerShell)
+or
+for /f %i in ('docker ps -aq') do docker rm %i # For Windows (CMD)
 ```
 
 ### Remove Docker images
 
 ```bash
-docker rmi -f $(docker images -q)
+docker rmi -f $(docker images -q) # For Linux, macOS and Windowns(PowerShell)
+or
+for /f %i in ('docker images -q') do docker rmi -f %i # For Windows (CMD)
 ```
 
 ---
@@ -117,6 +123,7 @@ To visualize interactive results:
 
 * Open `Viewer.ipynb` in your preferred notebook environment
 * Execute the cells to explore the results
+* *Note* The 'Hyperparameter Importance (fANOVA)' is an estimate that exhibits stochasticity; therefore, it may produce different results on each run and can slightly differ from the reported values
 
 ---
 
