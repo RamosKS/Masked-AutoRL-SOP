@@ -53,8 +53,7 @@ docker run -it masked-autorl-sop
 ### Run Jupyter Notebook for visualization
 
 ```bash
-docker run -it -p 8888:8888 masked-autorl-sop \
-jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+docker run -it -p 8888:8888 masked-autorl-sop jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
 ```
 
 Then open the generated link (e.g., `http://127.0.0.1:8888/tree...`) and run:
