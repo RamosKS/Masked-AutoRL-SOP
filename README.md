@@ -1,148 +1,134 @@
 # Masked-AutoRL-SOP
 
-This repository presents the **Masked AutoRL-SOP** algorithm:
+This repository provides the **Masked AutoRL-SOP** framework:
 **Automated Reinforcement Learning with Bayesian Hyperparameter Optimization and Invalid Action Masking for the Sequential Ordering Problem**.
 
-In addition to the implementation, this repository includes:
+The primary configurations combine invalid action masking with Bayesian hyperparameter optimization based on the Tree-structured Parzen Estimator (TPE) or Gaussian Process (GP). Hyperband can optionally be applied as a multi-fidelity pruning mechanism. The repository also includes control and ablation configurations based on Random Search, sequential HyperTuningSK optimization, and action-resampling.
 
-* For reproducibility, all results reported in the paper are available in the `Results/` directory
-* A Jupyter notebook for interactive visualization and analysis of results
+## Repository contents
 
----
+- `Masked AutoRL-SOP.py`: interactive launcher for all implementations.
+- `variants/`: the 11 model implementations and their corresponding `Results/` and `Train Plots/` directories.
+- `SOP_Datasets/`: the SOP instances shared by all implementations.
+- `Viewer.ipynb`: interactive analysis of the stored Optuna databases and CSV logs.
+- `figures_pdf/`: output hierarchy used by the Viewer. Generated PDFs are ignored by Git; `.gitkeep` files preserve the directory structure.
 
-## 📦 Installation and Setup
+## Installation and setup
 
-The code was tested using **Python 3.13.10**.
+The project was tested with **Python 3.13.10**. The pinned environment files target `linux-64` and are intended for Docker, WSL, or native Linux.
 
-To install the required dependencies, navigate to the project directory and choose one of the following options:
+### Complete Conda environment
 
-### Option 1 — Using `requirements.txt`
-
-```bash
-conda create --name <env_name> --file requirements.txt
-conda activate <env_name>
-```
-
-### Option 2 — Using `environment.yml` (recommended for full reproducibility)
+The recommended setup recreates the complete environment, including the dependencies required by the GP variants:
 
 ```bash
 conda env create -f environment.yml
-conda activate <env_name>
+conda activate rl
 ```
 
----
+The environment includes Optuna 4.6.0 and PyTorch, which is required by Optuna's `GPSampler`.
 
-## 🐳 Docker
+### Explicit Linux package export
 
-For full reproducibility with identical environment settings, a Docker setup is provided.
+`requirements.txt` is an explicit `linux-64` Conda export. It can recreate the Conda-managed package layer on the same platform:
 
-> ⚠️ Runtimes in Docker may be slightly longer due to container overhead, especially on Windows/WSL without optimized Docker configurations.
+```bash
+conda create --name rl --file requirements.txt
+conda activate rl
+```
 
-### Build the Docker image
+Because pip-managed dependencies are recorded in `environment.yml`, that file should be used for the complete project environment.
+
+## Running the code
+
+Open the interactive launcher from the repository root:
+
+```bash
+python "Masked AutoRL-SOP.py"
+```
+
+The launcher first requests the model and then the SOP instance. Its model menu follows this exact order. The **Article label** column gives the abbreviated identifier used in the manuscript's tables and discussion.
+
+| Option | Launcher entry | Article label | Configuration |
+|---:|---|---|---|
+| 1 | `[MULTIVARIATE] HYPERBAND TPE Masked AutoRL-SOP` | `TPE-M HB ON` | Multivariate TPE, invalid action masking, and Hyperband. |
+| 2 | `[MULTIVARIATE] TPE Masked AutoRL-SOP` | `TPE-M HB OFF` | Multivariate TPE and invalid action masking, without Hyperband. |
+| 3 | `[UNIVARIATE] HYPERBAND TPE Masked AutoRL-SOP` | `TPE-U HB ON` | Univariate TPE, invalid action masking, and Hyperband. |
+| 4 | `[UNIVARIATE] TPE Masked AutoRL-SOP` | `TPE-U HB OFF` | Univariate TPE and invalid action masking, without Hyperband. |
+| 5 | `HYPERBAND GP Masked AutoRL-SOP` | `GP HB ON` | GP, invalid action masking, and Hyperband. |
+| 6 | `GP Masked AutoRL-SOP` | `GP HB OFF` | GP and invalid action masking, without Hyperband. |
+| 7 | `NO_BAYESIAN Masked AutoRL-SOP` | `NO_BAYESIAN` | Sequential HyperTuningSK optimization and invalid action masking. |
+| 8 | `[MULTIVARIATE] NO_MASK Masked AutoRL-SOP` | `NO_MASK-M` | Multivariate TPE with action-resampling instead of invalid action masking. |
+| 9 | `[UNIVARIATE] NO_MASK Masked AutoRL-SOP` | `NO_MASK-U` | Univariate TPE with action-resampling instead of invalid action masking. |
+| 10 | `NO_MASK_NO_BAYESIAN Masked AutoRL-SOP` | `AutoRL-SOP (Python)` | Sequential HyperTuningSK optimization and action-resampling. |
+| 11 | `RANDOM_SEARCH Masked AutoRL-SOP` | `RS` | Random Search and invalid action masking. |
+
+Options 1–6 are the main Bayesian configurations. Options 7–11 provide non-Bayesian controls and component-level ablations.
+
+Each implementation reads the shared data from `SOP_Datasets/` and writes its outputs inside its own variant directory. Optuna-based implementations store SQLite studies in `Results/`; HyperTuningSK implementations store complete CSV optimization logs. Final-training plots are written to `Train Plots/`.
+
+## Interactive result analysis
+
+Start Jupyter and open `Viewer.ipynb`:
+
+```bash
+jupyter notebook Viewer.ipynb
+```
+
+The notebook requests the model and instance before loading the corresponding database or CSV log. It provides convergence, exploration, parameter, importance, and final-training analyses. The fANOVA evaluator uses `seed=42` for reproducible importance estimates.
+
+PDF reports can be generated from the notebook under `figures_pdf/<variant>/<instance>/`. Interactive plots do not require PDF export; exporting Plotly figures requires Kaleido and a compatible Chrome installation.
+
+## Docker
+
+Build the image from the repository root:
 
 ```bash
 docker build -t masked-autorl-sop .
 ```
 
-### Run the main algorithm
+Mount the repository when running the launcher so that databases, CSV logs, and plots persist on the host.
+
+Windows PowerShell:
+
+```powershell
+docker run --rm -it -v "${PWD}:/app" masked-autorl-sop
+```
+
+Linux or macOS:
 
 ```bash
-docker run -it masked-autorl-sop
+docker run --rm -it -v "$(pwd):/app" masked-autorl-sop
 ```
 
-### Run Jupyter Notebook for visualization
+To run the Viewer in Docker:
 
 ```bash
-docker run -it -p 8888:8888 masked-autorl-sop jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+docker run --rm -it -p 8888:8888 -v "$(pwd):/app" masked-autorl-sop jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
 ```
 
-Then open the generated link (e.g., `http://127.0.0.1:8888/tree...`) and run:
+On Windows PowerShell, replace `$(pwd)` with `${PWD}`. The Docker image includes Kaleido but does not install Chrome, so PDF export from Plotly may require an additional browser installation in the container.
 
-```
-Viewer.ipynb
-```
+Container runtimes can differ from native runtimes, particularly with Docker Desktop and WSL. Runtime comparisons reported in the paper should therefore be reproduced under the stated native environment.
 
-### Stopping the notebook
+## Features
 
-In the console, press:
+- Invalid action masking for precedence-constrained action spaces.
+- Univariate and multivariate TPE Bayesian optimization.
+- GP Bayesian optimization.
+- Optional Hyperband multi-fidelity pruning.
+- Random Search and HyperTuningSK comparison models.
+- Action-resampling and HPO ablation models.
+- Reproducible per-variant result storage and interactive analysis.
 
-```
-Ctrl + C
-```
-
-Then confirm with:
-
-```
-y
-```
-
-### Notes
-
-* Exporting figures as PDF requires **Kaleido**
-* Kaleido depends on **Google Chrome**, which is **not included** in the Docker container
-* The Docker containers do **not persist SQL database files** across runs  
-
-### Stop all containers
-
-```bash
-docker stop $(docker ps -aq) # For Linux, macOS and Windowns(PowerShell)
-or
-for /f %i in ('docker ps -aq') do docker stop %i # For Windows (CMD)
-```
-
-### Remove containers
-
-```bash
-docker rm $(docker ps -aq) # For Linux, macOS and Windowns(PowerShell)
-or
-for /f %i in ('docker ps -aq') do docker rm %i # For Windows (CMD)
-```
-
-### Remove Docker images
-
-```bash
-docker rmi -f $(docker images -q) # For Linux, macOS and Windowns(PowerShell)
-or
-for /f %i in ('docker images -q') do docker rmi -f %i # For Windows (CMD)
-```
-
----
-
-## ▶️ Running the Code
-
-To execute the main **Masked AutoRL-SOP** algorithm:
-
-```bash
-python Masked-AutoRL-SOP.py
-```
-
-You will then be prompted to select the instance index.
-
-To visualize interactive results:
-
-* Open `Viewer.ipynb` in your preferred notebook environment
-* Execute the cells to explore the results
-* *Note* The 'Hyperparameter Importance (fANOVA)' is an estimate that exhibits stochasticity; therefore, it may produce different results on each run and can slightly differ from the reported values
-
----
-
-## 📊 Features
-
-* Invalid action masking for structured action spaces
-* Bayesian hyperparameter optimization
-* Designed for the Sequential Ordering Problem (SOP)
-* Reproducible experimental pipeline
-
----
-
-## 📄 Citation
+## Citation
 
 If you use this code or the provided results in your research, please cite:
 
 ```bibtex
-@article{ramos2008maskedautorlsop,
+@article{ramos2026maskedautorlsop,
   title={Automated Reinforcement Learning with Bayesian Hyperparameter Optimization and Invalid Action Masking for the Sequential Ordering Problem},
-  author = {Ramos, Kerollan da Silva and Ottoni, André Luiz Carvalho and Pinto, Thomás and Santos, Allan Erlikhman Medeiros}
+  author={Ramos, Kerollan da Silva and Ottoni, André Luiz Carvalho and Pinto, Thomás and Santos, Allan Erlikhman Medeiros},
   journal={Computers \& Operations Research},
   volume={TBD},
   number={TBD},
@@ -152,6 +138,6 @@ If you use this code or the provided results in your research, please cite:
 }
 ```
 
-## 🤝 License
+## License
 
-This project is licensed under the MIT License — see the LICENSE file for details.
+This project is licensed under the MIT License. See `LICENSE` for details.
