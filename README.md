@@ -123,7 +123,8 @@ Container runtimes can differ from native runtimes, particularly with Docker Des
 
 ## Citation
 
-If you use this code or the provided results in your research, please cite:
+If you use this code or the provided results in your research, please cite the reference below.
+The manuscript associated with these codes is currently under review, and the citation information will be updated upon publication.
 
 ```bibtex
 @article{ramos2026maskedautorlsop,
